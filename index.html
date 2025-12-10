@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard Back Order (BO)</title>
+
+    <!-- Bootstrap & DataTables -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"
+      rel="stylesheet"
+    />
+
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+  </head>
+
+  <body>
+    <div class="container mt-4">
+      <!-- Table -->
+      <div class="table-responsive">
+        <table
+          id="boTable"
+          class="table table-striped table-hover table-bordered"
+        >
+          <thead class="table-dark">
+            <tr>
+              <th>TransID</th>
+              <th>Tanggal SO</th>
+              <th>Nama Toko</th>
+              <th>Nama Sales</th>
+              <th>Status BO Sales</th>
+              <th>Progress</th>
+              <th>Action</th>
+              <th>Lihat Detail</th>
+            </tr>
+          </thead>
+          <tbody id="boBody"></tbody>
+        </table>
+      </div>
+
+      <!-- Modal -->
+      <div
+        class="modal fade"
+        id="boModal"
+        tabindex="-1"
+        aria-labelledby="boModalLabel"
+        aria-hidden="true"
+      >
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="boModalLabel">
+                Detail Data Back Order
+              </h5>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+              ></button>
+            </div>
+            <div class="modal-body" id="modalContent"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let parsedData = [];
+
+      $(document).ready(function () {
+        const csvUrl =
+          "https://docs.google.com/spreadsheets/d/e/2PACX-1vT1livuxH_uRE6yr8M8_P8aiIjQDWG5SFeAeKScf3VS0WrB_VQ3y7TiRq8ingSHqjvCRTOMi7rIpmTu/pub?gid=1373920949&single=true&output=csv";
+
+        Papa.parse(csvUrl, {
+          download: true,
+          header: true,
+          complete: function (results) {
+            parsedData = results.data;
+            populateTable(parsedData);
+            $("#boTable").DataTable({
+              responsive: true,
+              pageLength: 10,
+              order: [[0, "desc"]],
+            });
+          },
+          error: function (error) {
+            console.error("Error loading CSV:", error);
+          },
+        });
+      });
+
+      function populateTable(data) {
+        if (data.length === 0) return;
+
+        data.forEach((item) => {
+          let progress = (item["Progress"] || "").toString().trim();
+
+          // === FILTER: hanya tampilkan progress 1 dan 5 ===
+          if (progress !== "1" && progress !== "5") {
+            return; // skip row → baris dihapus total
+          }
+
+          const row = $("<tr>");
+          row.append($("<td>").text(item["TransID"] || ""));
+          row.append($("<td>").text(item["Tanggal SO"] || ""));
+          row.append($("<td>").text(item["Nama Toko"] || ""));
+          row.append($("<td>").text(item["Nama Sales"] || ""));
+          row.append($("<td>").text(item["Status BO Sales"] || ""));
+          row.append($("<td>").text(progress));
+
+          // --- Ekstrak URL action ---
+          let link = item["Action"] || "";
+          if (link.includes("https://")) {
+            const match = link.match(/https:\/\/[^\s")]+/);
+            if (match) link = match[0];
+          }
+
+          // Tombol action hanya untuk progress 1 dan 5
+          let actionButtons = "";
+          if (progress === "1") {
+            actionButtons = `<a class="btn btn-success btn-sm" href="${link}" target="_blank">Step 1</a>`;
+          } else if (progress === "5") {
+            actionButtons = `<a class="btn btn-secondary btn-sm" href="${link}" target="_blank">Step 5</a>`;
+          }
+
+          row.append($("<td>").html(actionButtons));
+
+          // Tombol detail
+          const detailBtn = `
+      <button class="btn btn-outline-primary btn-sm" onclick="showDetail('${item["TransID"]}')" data-bs-toggle="modal" data-bs-target="#boModal">
+        <i class="bi bi-eye"></i>
+      </button>`;
+          row.append($("<td>").html(detailBtn));
+
+          $("#boBody").append(row);
+        });
+      }
+
+      function showDetail(TransID) {
+        const row = parsedData.find((r) => r["TransID"] === TransID);
+        if (!row) return;
+
+        const modalHtml = `
+  <div>
+    <h5>(1/6) SO Belum Tersuplay</h5>
+    <div class="row">
+      <div class="col-md-4"><div class="card"><div class="card-header">Cabang</div><div class="card-body">${
+        row["Cabang"] || "-"
+      }</div></div></div>
+      <div class="col-md-4"><div class="card"><div class="card-header">Tanggal SO</div><div class="card-body">${
+        row["Tanggal SO"] || "-"
+      }</div></div></div>
+      <div class="col-md-4"><div class="card"><div class="card-header">Nama Toko</div><div class="card-body">${
+        row["Nama Toko"] || "-"
+      }</div></div></div>
+      <div class="col-md-4"><div class="card"><div class="card-header">Nama Barang</div><div class="card-body">${
+        row["Nama Barang"] || "-"
+      }</div></div></div>
+      <div class="col-md-4"><div class="card"><div class="card-header">SO Amount</div><div class="card-body">${
+        row["SO Amount"] || "-"
+      }</div></div></div>
+      <div class="col-md-4"><div class="card"><div class="card-header">Keterangan</div><div class="card-body">${
+        row["Keterangan"] || "-"
+      }</div></div></div>
+    </div>
+
+    <h5>(2/6) Approval Sales Counter</h5>
+    <div class="row">
+      <div class="col-md-4"><div class="card"><div class="card-header">Status BO Counter</div><div class="card-body">${
+        row["Status BO Counter"] || "-"
+      }</div></div></div>
+      <div class="col-md-4"><div class="card"><div class="card-header">Sales Counter By</div><div class="card-body">${
+        row["Sales Counter By"] || "-"
+      }</div></div></div>
+      <div class="col-md-4"><div class="card"><div class="card-header">Alasan Reject Counter</div><div class="card-body">${
+        row["Alasan Reject Counter"] || "-"
+      }</div></div></div>
+    </div>
+
+    <h5>(3/6) Upload Form BO</h5>
+    <div class="row">
+      <div class="col-md-4"><div class="card"><div class="card-header">Status BO Sales</div><div class="card-body">${
+        row["Status BO Sales"] || "-"
+      }</div></div></div>
+      <div class="col-md-4"><div class="card"><div class="card-header">File Form BO</div><div class="card-body"><a href="${
+        row["File Form BO"] || "#"
+      }" target="_blank">Lihat Form</a></div></div></div>
+      <div class="col-md-4"><div class="card"><div class="card-header">Alasan Reject Sales</div><div class="card-body">${
+        row["Alasan Reject Sales"] || "-"
+      }</div></div></div>
+    </div>
+
+    <h5>(4/6) Pengorderan Purchasing</h5>
+    <div class="row">
+      <div class="col-md-4"><div class="card"><div class="card-header">Tanggal Order Purchasing</div><div class="card-body">${
+        row["Tanggal Order Purchasing"] || "-"
+      }</div></div></div>
+      <div class="col-md-4"><div class="card"><div class="card-header">Estimasi Tiba</div><div class="card-body">${
+        row["Estimasi Tiba"] || "-"
+      }</div></div></div>
+      <div class="col-md-4"><div class="card"><div class="card-header">Masa Tunggu</div><div class="card-body">${
+        row["Masa Tunggu"] || "-"
+      }</div></div></div>
+    </div>
+
+    <h5>(5/6) Update Barang Tiba</h5>
+    <div class="row">
+      <div class="col-md-4"><div class="card"><div class="card-header">Tanggal Barang Tiba</div><div class="card-body">${
+        row["Tanggal Barang Tiba"] || "-"
+      }</div></div></div>
+    </div>
+
+    <h5>(6/6) Update SO Baru</h5>
+    <div class="row">
+      <div class="col-md-4"><div class="card"><div class="card-header">SO Baru</div><div class="card-body">${
+        row["SO Baru"] || "-"
+      }</div></div></div>
+    </div>
+  </div>
+  `;
+
+        $("#modalContent").html(modalHtml);
+      }
+    </script>
+
+    <style>
+      body {
+        background-color: #f8f9fa;
+      }
+      table thead th {
+        text-align: center;
+      }
+      .table-hover tbody tr:hover {
+        background-color: #f1f3f5;
+      }
+      .modal-header {
+        background-color: #212529;
+        color: white;
+      }
+      .card {
+        border: 1px solid #dee2e6;
+        border-radius: 5px;
+        background-color: #f8f9fa;
+        margin-bottom: 15px;
+      }
+      .card-header {
+        background-color: #292b2e;
+        color: #fff;
+        font-size: 14px;
+        padding: 6px;
+      }
+      .card-body {
+        font-size: 13px;
+        padding: 8px;
+      }
+    </style>
+  </body>
+</html>
