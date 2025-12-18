@@ -158,7 +158,7 @@
 
         const modalHtml = `
   <div>
-    <h5>(1/6) SO Belum Tersuplay</h5>
+    <h5>(1/7) SO Belum Tersuplay</h5>
     <div class="row">
       <div class="col-md-4"><div class="card"><div class="card-header">Cabang</div><div class="card-body">${
         row["Cabang"] || "-"
@@ -186,7 +186,7 @@
       }</div></div></div>
     </div>
 
-    <h5>(2/6) Approval Sales Counter</h5>
+    <h5>(2/7) Approval Sales Counter</h5>
     <div class="row">
       <div class="col-md-4"><div class="card"><div class="card-header">Status BO Counter</div><div class="card-body">${
         row["Status BO Counter"] || "-"
@@ -199,7 +199,7 @@
       }</div></div></div>
     </div>
 
-    <h5>(3/6) Upload Form BO</h5>
+    <h5>(3/7) Upload Form BO</h5>
     <div class="row">
       <div class="col-md-4"><div class="card"><div class="card-header">Status BO Sales</div><div class="card-body">${
         row["Status BO Sales"] || "-"
@@ -212,27 +212,31 @@
       }</div></div></div>
     </div>
 
-    <h5>(4/6) Pengorderan Purchasing</h5>
+    <h5>(4/7) Pengorderan Purchasing</h5>
     <div class="row">
       <div class="col-md-4"><div class="card"><div class="card-header">Tanggal Order Purchasing</div><div class="card-body">${
         row["Tanggal Order Purchasing"] || "-"
-      }</div></div></div>
-      <div class="col-md-4"><div class="card"><div class="card-header">Estimasi Tiba</div><div class="card-body">${
-        row["Estimasi Tiba"] || "-"
       }</div></div></div>
       <div class="col-md-4"><div class="card"><div class="card-header">Masa Tunggu</div><div class="card-body">${
         row["Masa Tunggu"] || "-"
       }</div></div></div>
     </div>
 
-    <h5>(5/6) Update Barang Tiba</h5>
+    <h5>(5/7) Update Estimasi Tiba</h5>
+    <div class="row">
+      <div class="col-md-4"><div class="card"><div class="card-header">Estimasi Tiba</div><div class="card-body">${
+        row["Estimasi Tiba"] || "-"
+      }</div></div></div>
+    </div>
+
+    <h5>(6/7) Update Barang Tiba</h5>
     <div class="row">
       <div class="col-md-4"><div class="card"><div class="card-header">Tanggal Barang Tiba</div><div class="card-body">${
         row["Tanggal Barang Tiba"] || "-"
       }</div></div></div>
     </div>
 
-    <h5>(6/6) Update SO Baru</h5>
+    <h5>(6/7) Update SO Baru</h5>
     <div class="row">
       <div class="col-md-4"><div class="card"><div class="card-header">SO Baru</div><div class="card-body">${
         row["SO Baru"] || "-"
