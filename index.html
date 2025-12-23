@@ -107,10 +107,7 @@
         data.forEach((item) => {
           let progress = (item["Progress"] || "").toString().trim();
 
-          // === FILTER: hanya tampilkan progress 1 dan 5 ===
-          if (progress !== "1" && progress !== "5" && progress !== "6") {
-            return; // skip row → baris dihapus total
-          }
+          const allowAction = ["1", "6"].includes(progress);
 
           const row = $("<tr>");
           row.append($("<td>").text(item["TransID"] || ""));
@@ -129,14 +126,16 @@
 
           // Tombol action hanya untuk progress 1 dan 5
           let actionButtons = "";
-          if (progress === "1") {
-            actionButtons = `<a class="btn btn-success btn-sm" href="${link}" target="_blank">Step 1</a>`;
-          } else if (progress === "5") {
-            actionButtons = `<a class="btn btn-secondary btn-sm" href="${link}" target="_blank">Step 5</a>`;
-          } else if (progress == "6" || progress == "COMPLETE") {
-            actionButtons = `<button class="btn btn-dark btn-sm" disabled>Complete</button>`;
-          } else if (progress == "DIRECT") {
-            actionButtons = `<button class="btn btn-danger btn-sm" disabled>Rejected</button>`;
+          if (allowAction) {
+            if (progress === "1") {
+              actionButtons = `<a class="btn btn-success btn-sm" href="${link}" target="_blank">Step 1</a>`;
+            } else if (progress === "6") {
+              actionButtons = `<a class="btn btn-secondary btn-sm" href="${link}" target="_blank">Step 6</a>`;
+            } else if (progress == "7" || progress == "COMPLETE") {
+              actionButtons = `<button class="btn btn-dark btn-sm" disabled>Complete</button>`;
+            } else if (progress == "DIRECT") {
+              actionButtons = `<button class="btn btn-danger btn-sm" disabled>Rejected</button>`;
+            }
           }
 
           row.append($("<td>").html(actionButtons));
